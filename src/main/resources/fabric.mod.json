@@ -5,8 +5,7 @@
   "name": "YACM",
   "description": "Yet Another Config Mod\nMakes it possible to write configurations, as in the Forge Mod Loader",
   "authors": [
-    "Ars2014 (Developer)",
-    "Daniel Oaken (Artist)"
+    "Ars2014 (Developer)"
   ],
   "contact": {
     "repo": "https://github.com/Ars2014/YACM"
