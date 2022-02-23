@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "yacm",
+  "version": "${version}",
+  "name": "YACM",
+  "description": "Yet Another Config Mod\nMakes it possible to write configurations, as in the Forge Mod Loader",
+  "authors": [
+    "Ars2014 (Developer)",
+    "Daniel Oaken (Artist)"
+  ],
+  "contact": {
+    "repo": "https://github.com/Ars2014/YACM"
+  },
+  "license": "MIT",
+  "icon": "assets/yacm/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "preLaunch": [
+      "ru.ars2014.yacm.YACM"
+    ]
+  },
+  "mixins": [
+    "yacm.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.13.2"
+  },
+  "custom": {
+    "modmenu": {
+      "badges": [
+        "library"
+      ]
+    }
+  }
+}

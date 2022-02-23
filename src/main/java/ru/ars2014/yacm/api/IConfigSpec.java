@@ -1,0 +1,21 @@
+package ru.ars2014.yacm.api;
+
+import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
+
+public interface IConfigSpec<T extends IConfigSpec<T>> extends UnmodifiableConfig {
+    @SuppressWarnings("unchecked")
+    default T self() {
+        return (T) this;
+    }
+
+    void acceptConfig(CommentedConfig data);
+
+    boolean isCorrecting();
+
+    boolean isCorrect(CommentedConfig commentedFileConfig);
+
+    int correct(CommentedConfig commentedFileConfig);
+
+    void afterReload();
+}

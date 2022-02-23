@@ -1,0 +1,90 @@
+plugins {
+    id 'fabric-loom'
+    id 'maven-publish'
+    id 'com.github.johnrengelman.shadow'
+}
+
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+version = project.mod_version
+group = project.maven_group
+archivesBaseName = project.archives_base_name
+
+repositories {
+    maven { url "https://maven.fabricmc.net/" }
+    maven { url "https://maven.terraformersmc.com/" }
+    mavenCentral()
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+    modCompileOnlyApi("com.terraformersmc:modmenu:${project.modmenu_version}") {
+        transitive = false
+    }
+    modRuntimeOnly("com.terraformersmc:modmenu:${project.modmenu_version}") {
+        transitive = false
+    }
+
+    shadow "com.electronwill.night-config:core:${project.night_config_version}"
+    implementation "com.electronwill.night-config:core:${project.night_config_version}"
+
+    shadow "com.electronwill.night-config:toml:${project.night_config_version}"
+    implementation "com.electronwill.night-config:toml:${project.night_config_version}"
+}
+
+processResources {
+    inputs.property "version", project.version
+    filteringCharset "UTF-8"
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.encoding = "UTF-8"
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    archiveClassifier.set("sources")
+    from sourceSets.main.allSource
+}
+
+java {
+    withSourcesJar()
+}
+
+shadowJar {
+    relocate "com.electronwill.night-config.core", "${project.base_package}.shadowed.com.electronwill.night-config.core"
+    relocate "com.electronwill.night-config.toml", "${project.base_package}.shadowed.com.electronwill.night-config.toml"
+
+    configurations = [project.configurations.shadow]
+    classifier "shadow"
+}
+
+jar {
+    from("LICENSE")
+}
+
+remapJar {
+    dependsOn(shadowJar)
+    input.set(shadowJar.archivePath)
+}
+
+def remapSourcesJar = tasks.getByName("remapSourcesJar")
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+
+    repositories {}
+}
