@@ -7,11 +7,11 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
-
-    plugins {
-        id 'fabric-loom' version loom_version
-        id 'com.github.johnrengelman.shadow' version shadow_version
-    }
 }
 
 rootProject.name = "yacm"
+rootDir.eachDir {
+    if (it.name.startsWith("yacm-") && it.toPath().resolve("gradle.properties").toFile().exists()) {
+        include(rootDir.relativePath(it).replace('/', ':'))
+    }
+}

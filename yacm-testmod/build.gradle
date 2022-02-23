@@ -1,0 +1,5 @@
+dependencies {
+    implementation project(path: ":yacm-base", configuration: "namedElements")
+
+    modRuntimeOnly("com.terraformersmc:modmenu:${project.modmenu_version}")
+}

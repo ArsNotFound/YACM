@@ -1,0 +1,13 @@
+apply plugin: "com.github.johnrengelman.shadow"
+
+dependencies {
+    modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
+
+    shadow(implementation("com.electronwill.night-config:core:${project.night_config_version}"))
+    shadow(implementation("com.electronwill.night-config:toml:${project.night_config_version}"))
+}
+
+shadowJar {
+    relocate 'com.electronwill.night-config.core', "${project.base_package}.shadowed.com.electronwill.night-config.core"
+    relocate 'com.electronwill.night-config.toml', "${project.base_package}.shadowed.com.electronwill.night-config.toml"
+}

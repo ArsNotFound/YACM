@@ -1,8 +1,8 @@
 package ru.ars2014.yacm;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,7 +13,7 @@ import ru.ars2014.yacm.impl.ModConfig;
 
 import java.nio.file.Path;
 
-public class YACM implements PreLaunchEntrypoint {
+public class YACM implements ModInitializer {
     public static final String MOD_ID = "yacm";
     public static final String MOD_NAME = "YACM";
     public static final Logger LOGGER = LogManager.getLogger(MOD_NAME);
@@ -23,7 +23,7 @@ public class YACM implements PreLaunchEntrypoint {
 //    public static final Identifier REQUEST_SYNC_C2S_PACKET = new Identifier(MOD_ID, "request_config");
 
     @Override
-    public void onPreLaunch() {
+    public void onInitialize() {
         LOGGER.info("Hello from YACM!");
         FabricLoader.getInstance().getEntrypointContainers("yacm", ConfigEntrypoint.class).forEach(entrypoint -> {
             ModMetadata metadata = entrypoint.getProvider().getMetadata();

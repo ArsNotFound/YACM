@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "yacm_base",
+  "id": "yacm_testmod",
   "version": "${version}",
-
-  "name": "yacm_base",
+  "name": "YACM Test Mod",
+  "description": "Test Mod for YACM",
   "authors": [
     "Ars2014 (Developer)"
   ],
@@ -13,6 +13,14 @@
   "license": "MIT",
   "icon": "assets/yacm/icon.png",
   "environment": "*",
+  "entrypoints": {
+    "main": [
+      "ru.ars2014.yacmtest.YACMTest"
+    ],
+    "yacm": [
+      "ru.ars2014.yacmtest.ConfigEntry"
+    ]
+  },
   "depends": {
     "fabricloader": ">=0.13.2"
   },

@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "${project}",
+  "version": "${version}",
+  "authors": [
+    "Ars2014"
+  ],
+  "contact": {
+    "email": "info@siphalor.de",
+    "issues": "https://github.com/Siphalor/tweed-api/issues",
+    "sources": "https://github.com/Siphalor/tweed-api"
+  },
+
+  "license": "MIT",
+  "icon": "assets/${project}/icon.png",
+
+  "custom": {
+    "modmenu": {
+      "badges": [ "library" ],
+      "parent": {
+        "id": "yacm",
+        "name": "YACM",
+        "description": "",
+        "icon": "assets/${project}/icon.png",
+        "badges": [ "library" ]
+      }
+    }
+  }
+}

@@ -1,83 +1,145 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+
 plugins {
-    id 'fabric-loom'
+    id 'java'
     id 'maven-publish'
-    id 'com.github.johnrengelman.shadow'
+    id 'fabric-loom' version '0.11-SNAPSHOT' apply false
+    id 'com.github.johnrengelman.shadow' version '7.1.2' apply false
 }
 
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
+allprojects {
+    apply plugin: 'fabric-loom'
+    apply plugin: 'java-library'
 
-version = project.mod_version
-group = project.maven_group
-archivesBaseName = project.archives_base_name
+    group = project.maven_group
 
-repositories {
-    maven { url "https://maven.fabricmc.net/" }
-    maven { url "https://maven.terraformersmc.com/" }
-    mavenCentral()
+    repositories {
+        mavenCentral()
+        maven { url "https://maven.fabricmc.net/" }
+        maven { url "https://maven.terraformersmc.com/" }
+    }
+
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+
+    loom {}
+
+    dependencies {
+        minecraft "com.mojang:minecraft:${project.minecraft_version}"
+        mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+        modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        it.options.encoding = "UTF-8"
+    }
+
+    jar {
+        from("LICENSE")
+        dependsOn(processResources)
+    }
+
+    tasks.withType(GenerateModuleMetadata) {
+        enabled = false
+    }
+}
+
+subprojects {
+    configurations {
+        namedElements.extendsFrom implementation, api
+    }
+
+    jar {
+        archiveBaseName.set(archivesBaseName)
+        archiveClassifier.set("dev")
+    }
+
+    afterEvaluate {
+        if (pluginManager.hasPlugin("com.github.johnrengelman.shadow")) {
+            task shadowSourcesJar(type: ShadowJar) {
+                relocators = shadowJar.relocators
+                from sourceSets.main.output
+                configurations = [project.configurations.shadow]
+                archiveBaseName.set(archivesBaseName)
+                archiveClassifier.set("sources")
+            }
+            remapSourcesJar.dependsOn(shadowSourcesJar)
+
+            jar {
+                finalizedBy(shadowJar)
+            }
+
+            sourcesJar {
+                finalizedBy(shadowSourcesJar)
+            }
+
+            shadowJar {
+                configurations = [project.configurations.shadow]
+                archiveBaseName.set(archivesBaseName)
+                archiveClassifier.set("dev")
+            }
+
+            remapJar {
+                dependsOn(shadowJar)
+            }
+        }
+
+        remapJar {
+            archiveFileName = "${project.archivesBaseName}-${project.version}.jar"
+        }
+
+        processResources {
+            inputs.property "version", project.version
+
+            afterEvaluate {
+                from(sourceSets.main.resources.srcDirs) {
+                    include "fabric.mod.json"
+                    expand "version": project.version
+                    duplicatesStrategy DuplicatesStrategy.INCLUDE
+                }
+            }
+        }
+    }
+
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        archiveBaseName.set(archivesBaseName)
+        archiveClassifier.set("sources")
+        from sourceSets.main.allSource
+    }
+
+    task updateModMetaFiles(type: Copy) {
+        def projectId = project.archivesBaseName.replace('-', '_')
+        from rootProject.file(".template/icon.png")
+        into "src/main/resources/assets/${projectId}"
+        include "*.png"
+        outputs.upToDateWhen { false }
+        doLast {
+            def slurper = new JsonSlurper()
+            def template = slurper.parse(rootProject.file(".template/fabric.mod.json"))
+            def path = file("src/main/resources/fabric.mod.json")
+            def json = path.exists() ? slurper.parse(path) : new HashMap<>()
+            json += template
+            file("src/main/resources/fabric.mod.json")
+                    .write(JsonOutput.prettyPrint(JsonOutput.toJson(json)).replace("\${project}", projectId) + "\n")
+        }
+    }
+
 }
 
 dependencies {
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
-
-    modCompileOnlyApi("com.terraformersmc:modmenu:${project.modmenu_version}") {
-        transitive = false
-    }
-    modRuntimeOnly("com.terraformersmc:modmenu:${project.modmenu_version}") {
-        transitive = false
+    modRuntimeOnly("net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}") {
+        exclude module: "fabric-loader"
     }
 
-    shadow "com.electronwill.night-config:core:${project.night_config_version}"
-    implementation "com.electronwill.night-config:core:${project.night_config_version}"
-
-    shadow "com.electronwill.night-config:toml:${project.night_config_version}"
-    implementation "com.electronwill.night-config:toml:${project.night_config_version}"
-}
-
-processResources {
-    inputs.property "version", project.version
-    filteringCharset "UTF-8"
-
-    filesMatching("fabric.mod.json") {
-        expand "version": project.version
+    afterEvaluate {
+        subprojects {
+            include(api(project(path: ":" + it.name, configuration: "namedElements")))
+            rootProject.getTasksByName("remapJar", false).iterator().next().dependsOn(it.getTasksByName("remapJar", false).iterator().next())
+        }
     }
 }
-
-tasks.withType(JavaCompile).configureEach {
-    it.options.encoding = "UTF-8"
-}
-
-task sourcesJar(type: Jar, dependsOn: classes) {
-    archiveClassifier.set("sources")
-    from sourceSets.main.allSource
-}
-
-java {
-    withSourcesJar()
-}
-
-shadowJar {
-    relocate "com.electronwill.night-config.core", "${project.base_package}.shadowed.com.electronwill.night-config.core"
-    relocate "com.electronwill.night-config.toml", "${project.base_package}.shadowed.com.electronwill.night-config.toml"
-
-    configurations = [project.configurations.shadow]
-    classifier "shadow"
-}
-
-jar {
-    from("LICENSE")
-}
-
-remapJar {
-    dependsOn(shadowJar)
-    input.set(shadowJar.archivePath)
-}
-
-def remapSourcesJar = tasks.getByName("remapSourcesJar")
 
 publishing {
     publications {

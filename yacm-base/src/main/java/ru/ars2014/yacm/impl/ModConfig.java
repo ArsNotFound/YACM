@@ -79,7 +79,6 @@ public class ModConfig {
 
     public void acceptSyncedConfig(byte[] bytes) {
         setConfigData(TomlFormat.instance().createParser().parse(new ByteArrayInputStream(bytes)));
-//        fireEvent(IConfigEvent.reloading(this));
     }
 
     public enum Type {
